@@ -1,3 +1,15 @@
+
+plugins {
+    id("com.diffplug.spotless") version "6.21.0"
+}
+spotless {
+    java {
+        googleJavaFormat()
+    }
+    kotlin {
+        ktlint()
+    }
+}
 //
 // build.gradle in TeamCode
 //
@@ -37,3 +49,5 @@ dependencies {
     implementation "com.acmerobotics.roadrunner:actions:1.0.0"
     implementation "com.acmerobotics.dashboard:dashboard:0.4.16"
 }
+
+
