@@ -56,17 +56,17 @@ public class Culisante {
     //int basket1=500, basket2, bara1, bara2; //todo modificare valori aici (1)
 
     public enum PozCulisante{
-       Basket1, Basket2, Bara1, Bara2, Jos;
+       Basket1, Basket2, Specimen, Bara2, Jos;
     }
 
     private int CulisanteNivel (PozCulisante poz) {
         switch (poz){
             case Jos: return 0;
             //todo sau aici (2)
-            case Basket1: return 760;
-            case Bara1: return 0;
-            case Bara2: return 0;
-            case Basket2: return 0;
+            case Basket1: return 900;
+            case Specimen: return 0;
+            case Bara2: return 1000;
+            case Basket2: return 1600;
 
             default: break;
 

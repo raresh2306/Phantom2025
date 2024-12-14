@@ -99,10 +99,10 @@ public class Servos {       /* ToDo face textul verde sa va sara in ochi */
     //todo ce urmeaza aici e pur si simplu un case care are pozitiile servo urilor denumite simplu
     public double returnPos (pozAxoane pozitie) {
         switch (pozitie){
-            case Fata: return 0.038;
-            case Basket: return 0.4;
-            case Specimen: return 0.65;
-            case Vertical: return 0.3;
+            case Fata: return 0.055;
+            case Basket: return 0.5;
+            case Specimen: return 0.75;
+            case Vertical: return 0.4;
 
             default: break;
         }
@@ -123,34 +123,133 @@ public class Servos {       /* ToDo face textul verde sa va sara in ochi */
     //TODO o functie pentru servo
 
     //acum poti apela functia extendo iar extinderea se duce la pozitia sa maxima pentru colectare
-    public void extendo () throws InterruptedException {
-        pozTransfer.setPosition(0);
-        gripper.setPosition(0.85);
-        AxonLaPozitie(pozAxoane.Vertical);
-        sleep(200);
-        extindere.setPosition(0.81);
-        sleep(100);
-        bratGripper.setPosition(0.846);
-        sleep(300);
-        gripper.setPosition(0.97);
+    private enum ExtendoState {
+        IDLE, START, SET_GRIPPER, SET_AXON, EXTEND, MOVE_BRAT, FINALIZE
     }
-    public void transf() throws InterruptedException {
-        rotireGripper.setPosition(rotiregripper_init);
-        transfer.setPosition(0.375);
-        sleep(50);
-        bratGripper.setPosition(0.37);
-        sleep(150);
-        extindere.setPosition(0.96);
-        sleep(500);
-        AxonLaPozitie(Servos.pozAxoane.Fata);
-        sleep(245);
-        transfer.setPosition(0.05); sleep(200);
-        decolectare();
-        sleep(250);
-        AxonLaPozitie(Servos.pozAxoane.Basket);
-        pozTransfer.setPosition(0.5);
-        gripper.setPosition(0.94);
+
+    private ExtendoState extendoState = ExtendoState.IDLE;
+    private long extendoStartTime = 0;
+
+    public void startExtendo() {
+        extendoState = ExtendoState.START;
+        extendoStartTime = System.currentTimeMillis();
     }
+
+    public void updateExtendo() {
+        if (extendoState == ExtendoState.IDLE) return;
+
+        long elapsedTime = System.currentTimeMillis() - extendoStartTime;
+
+        switch (extendoState) {
+            case START:
+                pozTransfer.setPosition(0);
+                gripper.setPosition(0.85);
+                extendoStartTime = System.currentTimeMillis();
+                extendoState = ExtendoState.SET_AXON;
+                break;
+
+            case SET_AXON:
+                if (elapsedTime > 200) {
+                    AxonLaPozitie(pozAxoane.Vertical);
+                    extendoStartTime = System.currentTimeMillis();
+                    extendoState = ExtendoState.EXTEND;
+                }
+                break;
+
+            case EXTEND:
+                if (elapsedTime > 100) {
+                    extindere.setPosition(0.81);
+                    extendoStartTime = System.currentTimeMillis();
+                    extendoState = ExtendoState.MOVE_BRAT;
+                }
+                break;
+
+            case MOVE_BRAT:
+                if (elapsedTime > 300) {
+                    bratGripper.setPosition(0.846);
+                    extendoStartTime = System.currentTimeMillis();
+                    extendoState = ExtendoState.FINALIZE;
+                }
+                break;
+
+            case FINALIZE:
+                if (elapsedTime > 100) {
+                    gripper.setPosition(0.97);
+                    extendoState = ExtendoState.IDLE;
+                }
+                break;
+        }
+    }
+
+        private enum TransfState {
+            IDLE, START, ROTATE_GRIPPER, MOVE_BRAT, EXTEND, AXON_FRONT, DECOLECTARE, FINALIZE
+        }
+
+        private TransfState transfState = TransfState.IDLE;
+        private long transfStartTime = 0;
+
+        public void startTransf() {
+            transfState = TransfState.START;
+            transfStartTime = System.currentTimeMillis();
+        }
+
+        public void updateTransf() {
+            if (transfState == TransfState.IDLE) return;
+
+            long elapsedTime = System.currentTimeMillis() - transfStartTime;
+
+            switch (transfState) {
+                case START:
+                    colectare();
+                    rotireGripper.setPosition(rotiregripper_init);
+                    transfer.setPosition(0.375);
+                    transfStartTime = System.currentTimeMillis();
+                    transfState = TransfState.MOVE_BRAT;
+                    break;
+
+                case MOVE_BRAT:
+                    if (elapsedTime > 50) {
+                        bratGripper.setPosition(0.37);
+                        transfStartTime = System.currentTimeMillis();
+                        transfState = TransfState.EXTEND;
+                    }
+                    break;
+
+                case EXTEND:
+                    if (elapsedTime > 150) {
+                        extindere.setPosition(0.937);
+                        transfStartTime = System.currentTimeMillis();
+                        transfState = TransfState.AXON_FRONT;
+                    }
+                    break;
+
+                case AXON_FRONT:
+                    if (elapsedTime > 500) {
+                        AxonLaPozitie(Servos.pozAxoane.Fata);
+                        transfStartTime = System.currentTimeMillis();
+                        transfState = TransfState.DECOLECTARE;
+                    }
+                    break;
+
+                case DECOLECTARE:
+                    if (elapsedTime > 245) {
+                        transfer.setPosition(0.05);
+                        decolectare();
+                        transfStartTime = System.currentTimeMillis();
+                        transfState = TransfState.FINALIZE;
+                    }
+                    break;
+
+                case FINALIZE:
+                    if (elapsedTime > 250) {
+                        AxonLaPozitie(Servos.pozAxoane.Basket);
+                        pozTransfer.setPosition(0.5);
+                        gripper.setPosition(0.94);
+                        transfState = TransfState.IDLE; // Operation is complete
+                    }
+                    break;
+            }
+        }
 
     public void colectare() {
         gripper.setPosition(0.825);
