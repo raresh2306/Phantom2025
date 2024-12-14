@@ -83,8 +83,11 @@ public class teleoptest extends LinearOpMode {
                 servo.colectare();
                 servo.transfer.setPosition(0.075);
             }
-            if (gamepad1.dpad_left && servo.AxonStanga.getPosition() != 0)
+            if (gamepad1.dpad_left){
+                servo.transfer.setPosition(0.5);
+                if(servo.AxonStanga.getPosition() != 0)
                 servo.decolectare();
+            }
 
             if (gamepad1.dpad_down) {
                 servo.bratGripper.setPosition(servo.bratGripper.getPosition() + 0.001);
