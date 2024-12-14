@@ -38,11 +38,11 @@ public class Culisante {
         CulisantaDreapta.setDirection(DcMotorSimple.Direction.FORWARD);
         CulisantaStanga.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        CulisantaStanga.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        CulisantaDreapta.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        CulisantaStanga.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        CulisantaDreapta.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        CulisantaStanga.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        CulisantaDreapta.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        CulisantaStanga.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        CulisantaDreapta.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         CulisantaDreapta.setPower(0);
         CulisantaStanga.setPower(0);
@@ -53,20 +53,20 @@ public class Culisante {
 
 
     //basically ce am facut si la servo cu enum si functie plus functie care duce culisanta la pozitie
-    int basket1, basket2, bara1, bara2;
+    //int basket1=500, basket2, bara1, bara2; //todo modificare valori aici (1)
 
     public enum PozCulisante{
-       Basket1, Basket2, Bara1, Bara2, Jos; //todo modificare valori aici (1)
+       Basket1, Basket2, Bara1, Bara2, Jos;
     }
 
     private int CulisanteNivel (PozCulisante poz) {
         switch (poz){
             case Jos: return 0;
             //todo sau aici (2)
-            case Basket1: return basket1;
-            case Bara1: return bara1;
-            case Bara2: return bara2;
-            case Basket2: return basket2;
+            case Basket1: return 760;
+            case Bara1: return 0;
+            case Bara2: return 0;
+            case Basket2: return 0;
 
             default: break;
 
@@ -81,8 +81,8 @@ public class Culisante {
         CulisantaStanga.setTargetPosition(pozitie);
         CulisantaDreapta.setTargetPosition(pozitie);
 
-        CulisantaDreapta.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-        CulisantaStanga.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        CulisantaDreapta.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        CulisantaStanga.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         CulisantaStanga.setPower(power);
         CulisantaDreapta.setPower(power);
