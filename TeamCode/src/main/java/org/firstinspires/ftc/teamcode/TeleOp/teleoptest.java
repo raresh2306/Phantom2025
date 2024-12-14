@@ -64,6 +64,12 @@ public class teleoptest extends LinearOpMode {
                 servo.startTransf();
             }
 
+            if (gamepad1.square) {
+                servo.startSpecimen();
+
+            }
+
+            servo.updateSpecimen();
             servo.updateExtendo();
             servo.updateTransf();
 
@@ -73,9 +79,10 @@ public class teleoptest extends LinearOpMode {
             if (gamepad1.left_bumper)
                 servo.rotireGripper.setPosition(servo.rotireGripper.getPosition() - 0.01);
 
-            if (gamepad1.dpad_right)
+            if (gamepad1.dpad_right) {
                 servo.colectare();
-
+                servo.transfer.setPosition(0.075);
+            }
             if (gamepad1.dpad_left && servo.AxonStanga.getPosition() != 0)
                 servo.decolectare();
 

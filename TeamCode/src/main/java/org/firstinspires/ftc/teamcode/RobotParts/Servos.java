@@ -32,9 +32,9 @@ public class Servos {       /* ToDo face textul verde sa va sara in ochi */
     public Servo AxonDreapta = null;
     public double AxoaneRotire_init = 0;
     public Servo transfer = null;
-    public double transfer_init=0.04;
+    public double transfer_init=0.5;
     public Servo pozTransfer = null;
-    public double pozTransfer_init= 0;
+    public double pozTransfer_init= 0.25;
 
 
 
@@ -93,16 +93,17 @@ public class Servos {       /* ToDo face textul verde sa va sara in ochi */
     // So, vom folosi un enum (enumerare) si un switch case
 
     public enum pozAxoane {
-        Fata, Vertical, Basket, Specimen;
+        Fata, Vertical, Basket, Specimen, Putinsus;
     }
 
     //todo ce urmeaza aici e pur si simplu un case care are pozitiile servo urilor denumite simplu
     public double returnPos (pozAxoane pozitie) {
         switch (pozitie){
-            case Fata: return 0.055;
-            case Basket: return 0.5;
-            case Specimen: return 0.75;
-            case Vertical: return 0.4;
+            case Putinsus: return 0.1375; //175
+            case Fata: return 0.042;
+            case Basket: return 0.4;
+            case Specimen: return 0.45;
+            case Vertical: return 0.35;
 
             default: break;
         }
@@ -123,6 +124,53 @@ public class Servos {       /* ToDo face textul verde sa va sara in ochi */
     //TODO o functie pentru servo
 
     //acum poti apela functia extendo iar extinderea se duce la pozitia sa maxima pentru colectare
+
+
+    private enum SpecimenState{IDLE, START, SET_AXON, FINALIZE}
+
+    private SpecimenState specimenState = SpecimenState.IDLE;
+    private long specimenStartTime = 0;
+    public void startSpecimen() {
+        specimenState = SpecimenState.START;
+        specimenStartTime = System.currentTimeMillis();
+    }
+
+    public void updateSpecimen(){
+        if(specimenState== SpecimenState.IDLE) return;
+
+        long elapsedTime = System.currentTimeMillis() - specimenStartTime;
+
+        switch (specimenState) {
+
+            case START:
+                extindere.setPosition(extindere_init);
+                pozTransfer.setPosition(0.55);
+                gripper.setPosition(0.85);
+                specimenStartTime = System.currentTimeMillis();
+                specimenState = SpecimenState.SET_AXON;
+                break;
+
+            case SET_AXON:
+                if (elapsedTime>100) {
+                    AxonLaPozitie(pozAxoane.Specimen);
+                    specimenStartTime = System.currentTimeMillis();
+                    specimenState = SpecimenState.FINALIZE;
+                }
+                    break;
+
+
+            case FINALIZE:
+                if (elapsedTime>100) {
+                    transfer.setPosition(0.325);
+                    specimenStartTime = System.currentTimeMillis();
+                    specimenState = SpecimenState.IDLE;
+                }
+                break;
+
+        }
+
+    }
+
     private enum ExtendoState {
         IDLE, START, SET_GRIPPER, SET_AXON, EXTEND, MOVE_BRAT, FINALIZE
     }
@@ -142,22 +190,23 @@ public class Servos {       /* ToDo face textul verde sa va sara in ochi */
 
         switch (extendoState) {
             case START:
-                pozTransfer.setPosition(0);
+                pozTransfer.setPosition(0.25);
                 gripper.setPosition(0.85);
+                AxonLaPozitie(pozAxoane.Putinsus);
                 extendoStartTime = System.currentTimeMillis();
-                extendoState = ExtendoState.SET_AXON;
+                extendoState = ExtendoState.EXTEND;
                 break;
 
-            case SET_AXON:
-                if (elapsedTime > 200) {
-                    AxonLaPozitie(pozAxoane.Vertical);
-                    extendoStartTime = System.currentTimeMillis();
-                    extendoState = ExtendoState.EXTEND;
-                }
-                break;
+//            case SET_AXON:
+//                if (elapsedTime > 200) {
+//                    AxonLaPozitie(pozAxoane.Vertical);
+//                    extendoStartTime = System.currentTimeMillis();
+//                    extendoState = ExtendoState.EXTEND;
+//                }
+//                break;
 
             case EXTEND:
-                if (elapsedTime > 100) {
+                if (elapsedTime > 300) {
                     extindere.setPosition(0.81);
                     extendoStartTime = System.currentTimeMillis();
                     extendoState = ExtendoState.MOVE_BRAT;
@@ -175,6 +224,7 @@ public class Servos {       /* ToDo face textul verde sa va sara in ochi */
             case FINALIZE:
                 if (elapsedTime > 100) {
                     gripper.setPosition(0.97);
+                    pozTransfer.setPosition(0.25);
                     extendoState = ExtendoState.IDLE;
                 }
                 break;
@@ -182,7 +232,7 @@ public class Servos {       /* ToDo face textul verde sa va sara in ochi */
     }
 
         private enum TransfState {
-            IDLE, START, ROTATE_GRIPPER, MOVE_BRAT, EXTEND, AXON_FRONT, DECOLECTARE, FINALIZE
+            IDLE, START, AUX, MOVE_BRAT, EXTEND, AXON_FRONT, DECOLECTARE, FINALIZE
         }
 
         private TransfState transfState = TransfState.IDLE;
@@ -202,13 +252,13 @@ public class Servos {       /* ToDo face textul verde sa va sara in ochi */
                 case START:
                     colectare();
                     rotireGripper.setPosition(rotiregripper_init);
-                    transfer.setPosition(0.375);
+                    transfer.setPosition(0.325);
                     transfStartTime = System.currentTimeMillis();
                     transfState = TransfState.MOVE_BRAT;
                     break;
 
                 case MOVE_BRAT:
-                    if (elapsedTime > 50) {
+                    if (elapsedTime > 25) {
                         bratGripper.setPosition(0.37);
                         transfStartTime = System.currentTimeMillis();
                         transfState = TransfState.EXTEND;
@@ -216,23 +266,30 @@ public class Servos {       /* ToDo face textul verde sa va sara in ochi */
                     break;
 
                 case EXTEND:
-                    if (elapsedTime > 150) {
-                        extindere.setPosition(0.937);
+                    if (elapsedTime > 250) {
+                        extindere.setPosition(0.925);
                         transfStartTime = System.currentTimeMillis();
                         transfState = TransfState.AXON_FRONT;
                     }
                     break;
 
                 case AXON_FRONT:
-                    if (elapsedTime > 500) {
-                        AxonLaPozitie(Servos.pozAxoane.Fata);
+                    if (elapsedTime > 300) {
+                        pozTransfer.setPosition(0);
                         transfStartTime = System.currentTimeMillis();
-                        transfState = TransfState.DECOLECTARE;
+                        transfState = TransfState.AUX;
                     }
                     break;
 
+                case AUX:
+                    if(elapsedTime >100) {
+                        AxonLaPozitie(pozAxoane.Fata);
+                        transfStartTime = System.currentTimeMillis();
+                        transfState = TransfState.DECOLECTARE;
+                    }
+
                 case DECOLECTARE:
-                    if (elapsedTime > 245) {
+                    if (elapsedTime > 350) { //390
                         transfer.setPosition(0.05);
                         decolectare();
                         transfStartTime = System.currentTimeMillis();
@@ -241,7 +298,7 @@ public class Servos {       /* ToDo face textul verde sa va sara in ochi */
                     break;
 
                 case FINALIZE:
-                    if (elapsedTime > 250) {
+                    if (elapsedTime > 75) {
                         AxonLaPozitie(Servos.pozAxoane.Basket);
                         pozTransfer.setPosition(0.5);
                         gripper.setPosition(0.94);
@@ -252,7 +309,7 @@ public class Servos {       /* ToDo face textul verde sa va sara in ochi */
         }
 
     public void colectare() {
-        gripper.setPosition(0.825);
+        gripper.setPosition(0.75);
     }
 
     public void decolectare(){
