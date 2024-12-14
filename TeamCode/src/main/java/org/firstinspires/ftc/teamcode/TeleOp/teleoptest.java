@@ -56,6 +56,7 @@ public class teleoptest extends LinearOpMode {
                 servo.startExtendo();
                 sleep(300);
                 speed =0.4;
+
             }
 
             if (gamepad1.cross) {
